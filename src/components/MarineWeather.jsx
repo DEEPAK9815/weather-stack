@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Waves, Anchor, Compass, Clock, Droplets, Wind } from 'lucide-react';
 import WeatherCard from './WeatherCard';
+import { fetchWithFallback } from '../utils/api';
 
 const MarineWeather = ({ location }) => {
     const [marineData, setMarineData] = useState(null);
@@ -16,7 +16,7 @@ const MarineWeather = ({ location }) => {
             const query = `${location.lat},${location.lon}`;
 
             try {
-                const response = await axios.get(`http://api.weatherstack.com/marine`, {
+                const data = await fetchWithFallback(`http://api.weatherstack.com/marine`, {
                     params: {
                         access_key: apiKey,
                         query: query,
@@ -25,11 +25,11 @@ const MarineWeather = ({ location }) => {
                     }
                 });
 
-                if (response.data.error) {
-                    setError(response.data.error.info || "Marine data is not available on your current plan.");
+                if (data.error) {
+                    setError(data.error.info || "Marine data is not available on your current plan.");
                 } else {
-                    const todayKey = Object.keys(response.data.forecast)[0];
-                    setMarineData(response.data.forecast[todayKey]);
+                    const todayKey = Object.keys(data.forecast)[0];
+                    setMarineData(data.forecast[todayKey]);
                 }
 
             } catch (err) {

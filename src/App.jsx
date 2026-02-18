@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Search, CloudRain } from 'lucide-react';
 import CurrentWeather from './components/CurrentWeather';
 import HistoricalWeather from './components/HistoricalWeather';
 import MarineWeather from './components/MarineWeather';
+import { fetchWithFallback } from './utils/api';
 
 function App() {
   const [city, setCity] = useState('');
@@ -24,27 +24,21 @@ function App() {
     const apiKey = import.meta.env.VITE_WEATHERSTACK_API_KEY;
 
     try {
-      // Weatherstack Free Plan only supports HTTP.
-      // If this app is served over HTTPS, the browser will block the request (Mixed Content).
-      const response = await axios.get(`http://api.weatherstack.com/current`, {
+      const data = await fetchWithFallback(`http://api.weatherstack.com/current`, {
         params: {
           access_key: apiKey,
           query: city,
         }
       });
 
-      if (response.data.error) {
-        setError(response.data.error.info);
+      if (data.error) {
+        setError(data.error.info);
       } else {
-        setWeatherData(response.data);
+        setWeatherData(data);
       }
     } catch (err) {
       console.error(err);
-      if (err.message === 'Network Error') {
-        setError('Network Error. Note: Weatherstack Free API only supports HTTP. If you are on HTTPS, this request may be blocked.');
-      } else {
-        setError('Failed to fetch weather data. Please try again.');
-      }
+      setError('Failed to fetch weather data. Please try again later.');
     } finally {
       setLoading(false);
     }

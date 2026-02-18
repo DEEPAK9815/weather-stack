@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Calendar, Thermometer, Sun, Moon } from 'lucide-react';
 import WeatherCard from './WeatherCard';
+import { fetchWithFallback } from '../utils/api';
 
 const HistoricalWeather = ({ location }) => {
     const [date, setDate] = useState('');
@@ -23,7 +23,7 @@ const HistoricalWeather = ({ location }) => {
         const locationQuery = `${location.lat},${location.lon}`;
 
         try {
-            const response = await axios.get(`http://api.weatherstack.com/historical`, {
+            const data = await fetchWithFallback(`http://api.weatherstack.com/historical`, {
                 params: {
                     access_key: apiKey,
                     query: locationQuery,
@@ -32,11 +32,11 @@ const HistoricalWeather = ({ location }) => {
                 }
             });
 
-            if (response.data.error) {
-                setError(response.data.error.info);
+            if (data.error) {
+                setError(data.error.info);
             } else {
-                const dateKey = Object.keys(response.data.historical)[0];
-                setHistoricalData(response.data.historical[dateKey]);
+                const dateKey = Object.keys(data.historical)[0];
+                setHistoricalData(data.historical[dateKey]);
             }
         } catch (err) {
             setError('Failed to fetch historical data.');
